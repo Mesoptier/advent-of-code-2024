@@ -1,5 +1,4 @@
 use crate::days::DaySolution;
-use itertools::Itertools;
 use std::cmp::Ordering;
 
 pub struct Day02;
@@ -20,28 +19,18 @@ impl DaySolution for Day02 {
                     .map(|level| level.parse::<u32>().unwrap()),
             );
 
-            if Self::is_safe(levels.iter().copied()) {
-                count1 += 1;
-                count2 += 1;
-            } else {
-                for drop_index in 0..levels.len() {
-                    if Self::is_safe(
-                        levels
-                            .iter()
-                            .enumerate()
-                            .filter_map(|(index, level)| {
-                                if index == drop_index {
-                                    None
-                                } else {
-                                    Some(level)
-                                }
-                            })
-                            .copied(),
-                    ) {
-                        count2 += 1;
-                        break;
-                    }
+            match (
+                check_safety_with_dampener(&levels, Ordering::Less),
+                check_safety_with_dampener(&levels, Ordering::Greater),
+            ) {
+                (Ok(false), _) | (_, Ok(false)) => {
+                    count1 += 1;
+                    count2 += 1;
                 }
+                (Ok(true), _) | (_, Ok(true)) => {
+                    count2 += 1;
+                }
+                _ => {}
             }
         }
 
@@ -49,21 +38,45 @@ impl DaySolution for Day02 {
     }
 }
 
-impl Day02 {
-    fn is_safe(levels: impl Iterator<Item = u32> + Clone) -> bool {
-        Self::is_safe_with_ordering(levels.clone(), Ordering::Less)
-            || Self::is_safe_with_ordering(levels.clone(), Ordering::Greater)
-    }
+fn check_safety_with_dampener(levels: &[u32], target_ordering: Ordering) -> Result<bool, ()> {
+    match check_safety(levels, target_ordering) {
+        Ok(_) => Ok(false),
+        Err(index) => {
+            // The step from `index` to `index + 1` failed. Either one of those could be removed by
+            // the Problem Dampener. So we try to recover locally until `index + 2` and resume normal
+            // checking from there. Any further problems are then fatal.
 
-    fn is_safe_with_ordering(levels: impl Iterator<Item = u32>, target_ordering: Ordering) -> bool {
-        levels.tuple_windows().peekable().all(|(a, b)| {
-            a.cmp(&b) == target_ordering && (1 <= a.abs_diff(b) && a.abs_diff(b) <= 3)
-        })
+            #[allow(clippy::collapsible_if)]
+            #[allow(unused_parens)]
+            if (
+                // Whether level at `index` can be removed.
+                ((index == 0 || is_safe_step(levels[index - 1], levels[index + 1], target_ordering))
+                && (index + 2 == levels.len()
+                    || is_safe_step(levels[index + 1], levels[index + 2], target_ordering)))
+                // Whether level at `index + 1` can be removed.
+                || (index + 2 == levels.len()
+                    || is_safe_step(levels[index], levels[index + 2], target_ordering))
+            ) {
+                if check_safety(&levels[index + 2..], target_ordering).is_ok() {
+                    return Ok(true);
+                }
+            }
+
+            Err(())
+        }
     }
 }
 
-enum SafetyResult {
-    Safe,
-    SafeDampened,
-    Unsafe,
+fn check_safety(levels: &[u32], target_ordering: Ordering) -> Result<(), usize> {
+    for index in 1..levels.len() {
+        if !is_safe_step(levels[index - 1], levels[index], target_ordering) {
+            return Err(index - 1);
+        }
+    }
+
+    Ok(())
+}
+
+fn is_safe_step(level: u32, next_level: u32, target_ordering: Ordering) -> bool {
+    level.cmp(&next_level) == target_ordering && (0..=3).contains(&level.abs_diff(next_level))
 }
