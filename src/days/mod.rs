@@ -1,7 +1,9 @@
 use crate::days::day01::Day01;
+use crate::days::day02::Day02;
 use std::fmt::Debug;
 
 mod day01;
+mod day02;
 
 trait DaySolution {
     type Output1: Debug;
@@ -21,6 +23,7 @@ trait DaySolution {
 pub fn run_day(input: &str, day: u32) -> (Option<String>, Option<String>) {
     match day {
         1 => Day01.run(input),
+        2 => Day02.run(input),
         _ => unimplemented!(),
     }
 }
