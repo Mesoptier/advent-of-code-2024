@@ -2,6 +2,8 @@ use crate::days::DaySolution;
 use itertools::Itertools;
 use std::cmp::Ordering;
 
+const MAX_REPORT_SIZE: usize = 8;
+
 pub struct Day02;
 
 impl DaySolution for Day02 {
@@ -9,19 +11,21 @@ impl DaySolution for Day02 {
     type Output2 = usize;
 
     fn solve(&self, input: &str) -> (Option<Self::Output1>, Option<Self::Output2>) {
-        let reports = Self::parse(input);
+        let reports = input.lines().map(|line| {
+            line.split_whitespace()
+                .map(|level| level.parse().unwrap())
+                .collect::<Vec<_>>()
+        });
 
-        // Part 1
-        let output1 = reports
-            .iter()
-            .filter(|levels| Self::is_safe(levels.iter().copied()))
-            .count();
+        let mut count1 = 0;
+        let mut count2 = 0;
 
-        // Part 2
-        let output2 = reports
-            .iter()
-            .filter(|levels| {
-                for drop_index in 0..=levels.len() {
+        for levels in reports {
+            if Self::is_safe(levels.iter().copied()) {
+                count1 += 1;
+                count2 += 1;
+            } else {
+                for drop_index in 0..levels.len() {
                     if Self::is_safe(
                         levels
                             .iter()
@@ -35,30 +39,18 @@ impl DaySolution for Day02 {
                             })
                             .copied(),
                     ) {
-                        return true;
+                        count2 += 1;
+                        break;
                     }
                 }
+            }
+        }
 
-                false
-            })
-            .count();
-
-        (Some(output1), Some(output2))
+        (Some(count1), Some(count2))
     }
 }
 
 impl Day02 {
-    fn parse(input: &str) -> Vec<Vec<u32>> {
-        input
-            .lines()
-            .map(|line| {
-                line.split_whitespace()
-                    .map(|level| level.parse().unwrap())
-                    .collect()
-            })
-            .collect()
-    }
-
     fn is_safe(levels: impl Iterator<Item = u32> + Clone) -> bool {
         Self::is_safe_with_ordering(levels.clone(), Ordering::Less)
             || Self::is_safe_with_ordering(levels.clone(), Ordering::Greater)
