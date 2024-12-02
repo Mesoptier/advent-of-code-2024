@@ -2,6 +2,7 @@ use crate::days::run_day;
 use clap::{Parser, Subcommand};
 use homedir::my_home;
 use std::fs;
+use std::time::Instant;
 
 mod days;
 
@@ -52,7 +53,9 @@ fn main() {
             let input_path = format!("inputs/day{:02}.txt", day);
             let input = fs::read_to_string(input_path).unwrap();
 
+            let start = Instant::now();
             let (output1, output2) = run_day(&input, day);
+            let elapsed = start.elapsed();
             println!("Day {}", day);
             println!(
                 "Part 1: {}",
@@ -62,6 +65,7 @@ fn main() {
                 "Part 2: {}",
                 output2.unwrap_or("not yet implemented".to_owned())
             );
+            println!("Elapsed time: {:?}", elapsed);
         }
     }
 }
