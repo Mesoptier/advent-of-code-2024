@@ -2,8 +2,6 @@ use crate::days::DaySolution;
 use itertools::Itertools;
 use std::cmp::Ordering;
 
-const MAX_REPORT_SIZE: usize = 8;
-
 pub struct Day02;
 
 impl DaySolution for Day02 {
