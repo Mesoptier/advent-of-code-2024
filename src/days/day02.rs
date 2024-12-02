@@ -11,16 +11,17 @@ impl DaySolution for Day02 {
     type Output2 = usize;
 
     fn solve(&self, input: &str) -> (Option<Self::Output1>, Option<Self::Output2>) {
-        let reports = input.lines().map(|line| {
-            line.split_whitespace()
-                .map(|level| level.parse().unwrap())
-                .collect::<Vec<_>>()
-        });
-
         let mut count1 = 0;
         let mut count2 = 0;
 
-        for levels in reports {
+        let mut levels = vec![];
+        for line in input.lines() {
+            levels.clear();
+            levels.extend(
+                line.split_whitespace()
+                    .map(|level| level.parse::<u32>().unwrap()),
+            );
+
             if Self::is_safe(levels.iter().copied()) {
                 count1 += 1;
                 count2 += 1;
@@ -61,4 +62,10 @@ impl Day02 {
             a.cmp(&b) == target_ordering && (1 <= a.abs_diff(b) && a.abs_diff(b) <= 3)
         })
     }
+}
+
+enum SafetyResult {
+    Safe,
+    SafeDampened,
+    Unsafe,
 }
