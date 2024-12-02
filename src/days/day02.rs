@@ -19,18 +19,19 @@ impl DaySolution for Day02 {
                     .map(|level| level.parse::<u32>().unwrap()),
             );
 
-            match (
-                check_safety_with_dampener(&levels, Ordering::Less),
-                check_safety_with_dampener(&levels, Ordering::Greater),
-            ) {
-                (Ok(false), _) | (_, Ok(false)) => {
+            match check_safety_with_dampener(&levels) {
+                Ok(false) => {
+                    // Safe without any removed levels.
                     count1 += 1;
                     count2 += 1;
                 }
-                (Ok(true), _) | (_, Ok(true)) => {
+                Ok(true) => {
+                    // Safe with a removed level.
                     count2 += 1;
                 }
-                _ => {}
+                _ => {
+                    // Unsafe.
+                }
             }
         }
 
@@ -38,8 +39,25 @@ impl DaySolution for Day02 {
     }
 }
 
-fn check_safety_with_dampener(levels: &[u32], target_ordering: Ordering) -> Result<bool, ()> {
-    match check_safety(levels, target_ordering) {
+fn check_safety_with_dampener(levels: &[u32]) -> Result<bool, ()> {
+    match check_safety_with_dampener_ordered(levels, Ordering::Less) {
+        Ok(false) => Ok(false),
+        result => match (
+            result,
+            check_safety_with_dampener_ordered(levels, Ordering::Greater),
+        ) {
+            (_, Ok(false)) => Ok(false),
+            (Ok(true), _) | (_, Ok(true)) => Ok(true),
+            _ => Err(()),
+        },
+    }
+}
+
+fn check_safety_with_dampener_ordered(
+    levels: &[u32],
+    target_ordering: Ordering,
+) -> Result<bool, ()> {
+    match check_safety_ordered(levels, target_ordering) {
         Ok(_) => Ok(false),
         Err(index) => {
             // The step from `index` to `index + 1` failed. Either one of those could be removed by
@@ -57,7 +75,7 @@ fn check_safety_with_dampener(levels: &[u32], target_ordering: Ordering) -> Resu
                 || (index + 2 == levels.len()
                     || is_safe_step(levels[index], levels[index + 2], target_ordering))
             ) {
-                if check_safety(&levels[index + 2..], target_ordering).is_ok() {
+                if check_safety_ordered(&levels[index + 2..], target_ordering).is_ok() {
                     return Ok(true);
                 }
             }
@@ -67,7 +85,7 @@ fn check_safety_with_dampener(levels: &[u32], target_ordering: Ordering) -> Resu
     }
 }
 
-fn check_safety(levels: &[u32], target_ordering: Ordering) -> Result<(), usize> {
+fn check_safety_ordered(levels: &[u32], target_ordering: Ordering) -> Result<(), usize> {
     for index in 1..levels.len() {
         if !is_safe_step(levels[index - 1], levels[index], target_ordering) {
             return Err(index - 1);
