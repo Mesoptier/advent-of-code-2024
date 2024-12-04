@@ -22,6 +22,7 @@ name = "advent-of-code-2024"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "copy-range",
  "homedir",
  "itertools",
  "nom",
@@ -194,6 +195,12 @@ name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
+
+[[package]]
+name = "copy-range"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "660cbf03f75e28f252bea61cdafb8efd6f8e49dac6873ab376233e9b3e99f66c"
 
 [[package]]
 name = "core-foundation"
