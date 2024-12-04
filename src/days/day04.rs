@@ -27,6 +27,10 @@ impl DaySolution for Day04 {
 
         for y in y_range {
             for x in x_range {
+                if char_at(x, y) != TARGET_WORD[0] {
+                    continue;
+                }
+
                 for dy in -1..=1 {
                     if !y_range.contains(&(y + dy * (TARGET_WORD.len() - 1) as isize)) {
                         continue;
