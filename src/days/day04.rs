@@ -1,5 +1,4 @@
 use crate::days::DaySolution;
-use copy_range::CopyRange;
 
 pub struct Day04;
 
@@ -10,10 +9,8 @@ impl DaySolution for Day04 {
     fn solve(&self, input: &str) -> (Option<Self::Output1>, Option<Self::Output2>) {
         let input = input.as_bytes();
         let width = input.iter().position(|&c| c == b'\n').unwrap();
+        let line_width = width + 1;
         let height = input.len() / (width + 1);
-
-        let x_range: CopyRange<_> = (0..width as isize).into();
-        let y_range: CopyRange<_> = (0..height as isize).into();
 
         let char_at = |x: isize, y: isize| -> char {
             let index = x + y * (width as isize + 1);
@@ -23,40 +20,32 @@ impl DaySolution for Day04 {
         // Part 1
         let mut count1 = 0;
 
-        const TARGET_WORD: [char; 4] = ['X', 'M', 'A', 'S'];
+        for index in 0..input.len() {
+            let target = match input[index] {
+                b'X' => [b'M', b'A', b'S'],
+                b'S' => [b'A', b'M', b'X'],
+                _ => continue,
+            };
 
-        for y in y_range {
-            for x in x_range {
-                if char_at(x, y) != TARGET_WORD[0] {
-                    continue;
+            for offset in [
+                1,              // right
+                line_width - 1, // down left
+                line_width,     // down
+                line_width + 1, // down right
+            ] {
+                // Break if out of bounds (any next offset will also be out of bounds).
+                if index + offset * 3 >= input.len() {
+                    break;
                 }
 
-                for dy in -1..=1 {
-                    if !y_range.contains(&(y + dy * (TARGET_WORD.len() - 1) as isize)) {
-                        continue;
-                    }
+                // Note: wrapping around is fine, since then '\n' will be included in the string,
+                // so it will never match.
 
-                    for dx in -1..=1 {
-                        if dx == 0 && dy == 0 {
-                            continue;
-                        }
-                        if !x_range.contains(&(x + dx * (TARGET_WORD.len() - 1) as isize)) {
-                            continue;
-                        }
-
-                        let found_target = 'found_target: {
-                            for i in 0..TARGET_WORD.len() as isize {
-                                if char_at(x + dx * i, y + dy * i) != TARGET_WORD[i as usize] {
-                                    break 'found_target false;
-                                }
-                            }
-
-                            true
-                        };
-                        if found_target {
-                            count1 += 1;
-                        }
-                    }
+                if input[index + offset * 1] == target[0]
+                    && input[index + offset * 2] == target[1]
+                    && input[index + offset * 3] == target[2]
+                {
+                    count1 += 1;
                 }
             }
         }
