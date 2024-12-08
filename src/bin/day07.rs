@@ -10,25 +10,52 @@ day_main!(7);
 
 fn solve(input: &str) -> (Option<isize>, Option<isize>) {
     let mut count1 = 0;
+    let mut count2 = 0;
 
     for line in input.lines() {
         let (_, (test_value, numbers)) = parse_line(line).unwrap();
 
-        fn test(test_value: isize, numbers: &[isize], accumulator: isize) -> bool {
+        fn test(test_value: isize, numbers: &[isize], accumulator: isize) -> (bool, bool) {
             if numbers.is_empty() {
-                accumulator == test_value
+                let result = accumulator == test_value;
+                (result, result)
             } else {
-                test(test_value, &numbers[1..], accumulator + numbers[0])
-                    || test(test_value, &numbers[1..], accumulator * numbers[0])
+                let result_add = test(test_value, &numbers[1..], accumulator + numbers[0]);
+                if result_add.0 {
+                    return (true, true);
+                }
+                if result_add.1 {
+                    return (false, true);
+                }
+
+                let result_mul = test(test_value, &numbers[1..], accumulator * numbers[0]);
+                if result_mul.0 {
+                    return (true, true);
+                }
+                if result_mul.1 {
+                    return (false, true);
+                }
+
+                let result_concat =
+                    test(test_value, &numbers[1..], concat(accumulator, numbers[0]));
+                (false, result_concat.1)
             }
         }
 
-        if test(test_value, &numbers, 0) {
+        fn concat(a: isize, b: isize) -> isize {
+            a * 10isize.pow(b.ilog10() + 1) + b
+        }
+
+        let (result1, result2) = test(test_value, &numbers, 0);
+        if result1 {
             count1 += test_value;
+        }
+        if result2 {
+            count2 += test_value;
         }
     }
 
-    (Some(count1), None)
+    (Some(count1), Some(count2))
 }
 
 fn parse_line(line: &str) -> IResult<&str, (isize, Vec<isize>)> {
@@ -46,6 +73,6 @@ mod tests {
     #[test]
     fn test_solve() {
         let input = "190: 10 19\n3267: 81 40 27\n83: 17 5\n156: 15 6\n7290: 6 8 6 15\n161011: 16 10 13\n192: 17 8 14\n21037: 9 7 18 13\n292: 11 6 16 20\n";
-        assert_eq!(solve(input), (Some(3749), None));
+        assert_eq!(solve(input), (Some(3749), Some(11387)));
     }
 }
