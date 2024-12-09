@@ -29,59 +29,42 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
         (antennas_map, 0..width as isize, 0..height as isize)
     };
 
-    let count1 = {
-        let mut antinodes = HashSet::<(isize, isize)>::new();
-        for antennas in antennas_map.values() {
-            antennas
-                .iter()
-                .tuple_combinations()
-                .for_each(|(&(x0, y0), &(x1, y1))| {
-                    let dx = x0 - x1;
-                    let dy = y0 - y1;
-
-                    antinodes.insert((x0 + dx, y0 + dy));
-                    antinodes.insert((x1 - dx, y1 - dy));
-                })
-        }
-
-        antinodes
+    let mut antinodes_1 = HashSet::<(isize, isize)>::new();
+    let mut antinodes_2 = HashSet::<(isize, isize)>::new();
+    for antennas in antennas_map.values() {
+        antennas
             .iter()
-            .filter(|(x, y)| x_range.contains(x) && y_range.contains(y))
-            .count()
-    };
+            .tuple_combinations()
+            .for_each(|(&(x0, y0), &(x1, y1))| {
+                let dx = x0 - x1;
+                let dy = y0 - y1;
+                let d = gcd::euclid_usize(dx.unsigned_abs(), dy.unsigned_abs()) as isize;
 
-    let count2 = {
-        let mut antinodes = HashSet::<(isize, isize)>::new();
-        for antennas in antennas_map.values() {
-            antennas
-                .iter()
-                .tuple_combinations()
-                .for_each(|(&(x0, y0), &(x1, y1))| {
-                    let dx = x0 - x1;
-                    let dy = y0 - y1;
+                for (x, y, dx, dy) in [(x0, y0, dx, dy), (x1, y1, -dx, -dy)] {
+                    // Part 1
+                    let xi = x + dx;
+                    let yi = y + dy;
+                    if x_range.contains(&xi) && y_range.contains(&yi) {
+                        antinodes_1.insert((xi, yi));
+                    }
 
-                    let d = gcd::euclid_usize(dx.unsigned_abs(), dy.unsigned_abs()) as isize;
+                    // Part 2
                     let dx = dx / d;
                     let dy = dy / d;
-
-                    for (x, y, dx, dy) in [(x0, y0, dx, dy), (x1, y1, -dx, -dy)] {
-                        for i in 0.. {
-                            let xi = x + dx * i;
-                            let yi = y + dy * i;
-                            if x_range.contains(&xi) && y_range.contains(&yi) {
-                                antinodes.insert((xi, yi));
-                            } else {
-                                break;
-                            }
+                    for i in 0.. {
+                        let xi = x + dx * i;
+                        let yi = y + dy * i;
+                        if x_range.contains(&xi) && y_range.contains(&yi) {
+                            antinodes_2.insert((xi, yi));
+                        } else {
+                            break;
                         }
                     }
-                })
-        }
+                }
+            })
+    }
 
-        antinodes.len()
-    };
-
-    (Some(count1), Some(count2))
+    (Some(antinodes_1.len()), Some(antinodes_2.len()))
 }
 
 #[cfg(test)]
