@@ -80,7 +80,11 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
 
     let checksum_2 = {
         let num_files = (input.len() + 1) / 2;
-        let mut placed_files = vec![false; num_files];
+
+        // Files marked as moved, so they'll be skipped for regular placement.
+        let mut moved_files = vec![false; num_files];
+        // List of files not (yet) moved, these will be considered for filling free space.
+        let mut unmoved_files = Vec::from_iter(0..num_files);
 
         let mut blocks = Blocks {
             checksum: 0,
@@ -91,26 +95,29 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
             if index % 2 == 0 {
                 // Fill files
                 let file_id = index / 2;
-                if placed_files[file_id] {
+                if moved_files[file_id] {
                     blocks.skip_free(size);
                 } else {
                     blocks.push_file(file_id, size);
-                    placed_files[file_id] = true;
                 }
             } else {
                 // Fill free space
                 let max_placed_id = (index - 1) / 2;
                 let mut free_size = size;
-                for file_id in (max_placed_id..num_files).rev() {
-                    if placed_files[file_id] {
-                        continue;
+                for index in (0..unmoved_files.len()).rev() {
+                    let file_id = unmoved_files[index];
+
+                    // This check allows us to avoid removing files from unmoved_files on regular placement.
+                    if file_id <= max_placed_id {
+                        break;
                     }
 
                     let size = input[file_id * 2];
                     if size <= free_size {
                         free_size -= size;
                         blocks.push_file(file_id, size);
-                        placed_files[file_id] = true;
+                        moved_files[file_id] = true;
+                        unmoved_files.remove(index);
                     }
                 }
 
