@@ -99,8 +99,9 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
                 }
             } else {
                 // Fill free space
+                let max_placed_id = (index - 1) / 2;
                 let mut free_size = size;
-                for file_id in (0..num_files).rev() {
+                for file_id in (max_placed_id..num_files).rev() {
                     if placed_files[file_id] {
                         continue;
                     }
