@@ -99,7 +99,7 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
             } else {
                 // Fill free space
                 let mut free_size = size;
-                for (index, &size) in input.iter().enumerate().rev() {
+                for (index, &size) in input.iter().enumerate().rev().take(input.len() - index) {
                     if index % 2 == 0 {
                         let file_id = index / 2;
                         if placed_files[file_id] {
