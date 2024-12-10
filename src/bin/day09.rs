@@ -79,7 +79,8 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     };
 
     let checksum_2 = {
-        let mut placed_files = vec![false; (input.len() + 1) / 2];
+        let num_files = (input.len() + 1) / 2;
+        let mut placed_files = vec![false; num_files];
 
         let mut blocks = Blocks {
             checksum: 0,
@@ -99,18 +100,16 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
             } else {
                 // Fill free space
                 let mut free_size = size;
-                for (index, &size) in input.iter().enumerate().rev().take(input.len() - index) {
-                    if index % 2 == 0 {
-                        let file_id = index / 2;
-                        if placed_files[file_id] {
-                            continue;
-                        }
+                for file_id in (0..num_files).rev() {
+                    if placed_files[file_id] {
+                        continue;
+                    }
 
-                        if size <= free_size {
-                            free_size -= size;
-                            blocks.push_file(file_id, size);
-                            placed_files[file_id] = true;
-                        }
+                    let size = input[file_id * 2];
+                    if size <= free_size {
+                        free_size -= size;
+                        blocks.push_file(file_id, size);
+                        placed_files[file_id] = true;
                     }
                 }
 
