@@ -13,6 +13,16 @@ impl Blocks {
         self.checksum += self.position * block;
         self.position += 1;
     }
+
+    fn push_file(&mut self, file_id: usize, size: usize) {
+        for _ in 0..size {
+            self.push(file_id);
+        }
+    }
+
+    fn skip_free(&mut self, size: usize) {
+        self.position += size;
+    }
 }
 
 fn solve(input: &str) -> (Option<usize>, Option<usize>) {
@@ -68,7 +78,50 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
         blocks.checksum
     };
 
-    (Some(checksum_1), None)
+    let checksum_2 = {
+        let mut placed_files = vec![false; (input.len() + 1) / 2];
+
+        let mut blocks = Blocks {
+            checksum: 0,
+            position: 0,
+        };
+
+        for (index, &size) in input.iter().enumerate() {
+            if index % 2 == 0 {
+                // Fill files
+                let file_id = index / 2;
+                if placed_files[file_id] {
+                    blocks.skip_free(size);
+                } else {
+                    blocks.push_file(file_id, size);
+                    placed_files[file_id] = true;
+                }
+            } else {
+                // Fill free space
+                let mut free_size = size;
+                for (index, &size) in input.iter().enumerate().rev() {
+                    if index % 2 == 0 {
+                        let file_id = index / 2;
+                        if placed_files[file_id] {
+                            continue;
+                        }
+
+                        if size <= free_size {
+                            free_size -= size;
+                            blocks.push_file(file_id, size);
+                            placed_files[file_id] = true;
+                        }
+                    }
+                }
+
+                blocks.skip_free(free_size);
+            }
+        }
+
+        blocks.checksum
+    };
+
+    (Some(checksum_1), Some(checksum_2))
 }
 
 #[cfg(test)]
@@ -78,6 +131,6 @@ mod tests {
     #[test]
     fn test_solve() {
         let example_input = "2333133121414131402";
-        assert_eq!(solve(example_input), (Some(1928), None));
+        assert_eq!(solve(example_input), (Some(1928), Some(2858)));
     }
 }
