@@ -1,32 +1,31 @@
+use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 
 pub type Coord = (usize, usize);
 
-pub trait Grid {
-    type Item<'a>
-    where
-        Self: 'a;
+pub trait Grid<'a> {
+    type Item;
 
-    fn width(&self) -> usize;
-    fn height(&self) -> usize;
-    fn get(&self, coord: Coord) -> Option<Self::Item<'_>>;
+    fn width(&'a self) -> usize;
+    fn height(&'a self) -> usize;
+    fn get(&'a self, coord: Coord) -> Option<Self::Item>;
 
-    fn iter(&self) -> impl Iterator<Item = (Coord, Self::Item<'_>)> {
+    fn iter(&'a self) -> impl Iterator<Item = (Coord, Self::Item)> {
         (0..self.height())
             .flat_map(|y| (0..self.width()).map(move |x| (x, y)))
             .map(move |coord| (coord, self.get(coord).unwrap()))
     }
 
-    fn map<'a, B, F>(&'a self, f: F) -> MapGrid<'a, Self, F>
+    fn map<B, F>(self, f: F) -> MapGrid<'a, Self, F>
     where
         Self: Sized,
-        F: Fn(Self::Item<'a>) -> B,
+        F: Fn(Self::Item) -> B,
     {
         MapGrid::new(self, f)
     }
 }
 
-pub trait RefGrid<'a>: Grid<Item<'a> = &'a Self::RefItem> + 'a {
+pub trait RefGrid<'a>: Grid<'a, Item = &'a Self::RefItem> + 'a {
     type RefItem;
 }
 
@@ -53,11 +52,8 @@ impl<'a> StrGrid<'a> {
     }
 }
 
-impl Grid for StrGrid<'_> {
-    type Item<'a>
-        = &'a u8
-    where
-        Self: 'a;
+impl<'a> Grid<'a> for StrGrid<'a> {
+    type Item = &'a u8;
 
     fn width(&self) -> usize {
         self.line_width - 1
@@ -67,7 +63,7 @@ impl Grid for StrGrid<'_> {
         self.data.len() / self.line_width
     }
 
-    fn get(&self, coord: Coord) -> Option<&u8> {
+    fn get(&self, coord: Coord) -> Option<&'a u8> {
         self.coord_to_data_index(coord).map(|index| unsafe {
             // SAFETY: `index` is guaranteed to be valid.
             self.data.get_unchecked(index)
@@ -103,11 +99,8 @@ impl<T> VecGrid<T> {
     }
 }
 
-impl<T> Grid for VecGrid<T> {
-    type Item<'a>
-        = &'a T
-    where
-        Self: 'a;
+impl<'a, T: 'a> Grid<'a> for VecGrid<T> {
+    type Item = &'a T;
 
     fn width(&self) -> usize {
         self.width
@@ -117,7 +110,7 @@ impl<T> Grid for VecGrid<T> {
         self.data.len() / self.width
     }
 
-    fn get(&self, coord: Coord) -> Option<Self::Item<'_>> {
+    fn get(&'a self, coord: Coord) -> Option<Self::Item> {
         self.coord_to_data_index(coord).map(|index| unsafe {
             // SAFETY: `index` is guaranteed to be valid.
             self.data.get_unchecked(index)
@@ -153,36 +146,37 @@ impl<T> IndexMut<Coord> for VecGrid<T> {
 }
 
 pub struct MapGrid<'g, G, F> {
-    grid: &'g G,
+    grid: G,
     f: F,
+    _marker: PhantomData<&'g G>,
 }
 
-impl<'g, G, F> MapGrid<'g, G, F> {
-    pub fn new(grid: &'g G, f: F) -> Self {
-        Self { grid, f }
+impl<G, F> MapGrid<'_, G, F> {
+    pub fn new(grid: G, f: F) -> Self {
+        Self {
+            grid,
+            f,
+            _marker: PhantomData,
+        }
     }
 }
 
-impl<'g, B, G, F> Grid for MapGrid<'g, G, F>
+impl<'a, B, G, F> Grid<'a> for MapGrid<'a, G, F>
 where
-    G: Grid,
-    F: Fn(G::Item<'g>) -> B,
+    G: Grid<'a>,
+    F: Fn(G::Item) -> B,
 {
-    type Item<'a>
-        = B
-    where
-        F: 'a,
-        'g: 'a;
+    type Item = B;
 
-    fn width(&self) -> usize {
+    fn width(&'a self) -> usize {
         self.grid.width()
     }
 
-    fn height(&self) -> usize {
+    fn height(&'a self) -> usize {
         self.grid.height()
     }
 
-    fn get(&self, coord: Coord) -> Option<Self::Item<'_>> {
+    fn get(&'a self, coord: Coord) -> Option<Self::Item> {
         self.grid.get(coord).map(&self.f)
     }
 }
