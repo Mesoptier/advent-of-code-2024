@@ -1,43 +1,37 @@
+use std::ops::{Index, IndexMut};
+
 pub type Coord = (usize, usize);
 
 pub trait Grid {
-    type Item;
+    type Item<'a>
+    where
+        Self: 'a;
 
     fn width(&self) -> usize;
     fn height(&self) -> usize;
-    fn get(&self, coord: Coord) -> Option<&Self::Item>;
+    fn get(&self, coord: Coord) -> Option<Self::Item<'_>>;
 
-    fn iter(&self) -> impl Iterator<Item = (Coord, &Self::Item)> {
+    fn iter(&self) -> impl Iterator<Item = (Coord, Self::Item<'_>)> {
         (0..self.height())
             .flat_map(|y| (0..self.width()).map(move |x| (x, y)))
             .map(move |coord| (coord, self.get(coord).unwrap()))
     }
+
+    fn map<'a, B, F>(&'a self, f: F) -> MapGrid<'a, Self, F>
+    where
+        Self: Sized,
+        F: Fn(Self::Item<'a>) -> B,
+    {
+        MapGrid::new(self, f)
+    }
 }
 
-pub trait GridMut: Grid {
-    fn get_mut(&mut self, coord: Coord) -> Option<&mut Self::Item>;
+pub trait RefGrid<'a>: Grid<Item<'a> = &'a Self::RefItem> + 'a {
+    type RefItem;
 }
 
-macro_rules! index_impl {
-    ($t:ty, $($args:tt)*) => {
-        impl<$($args,)*> std::ops::Index<Coord> for $t {
-            type Output = <Self as Grid>::Item;
-
-            fn index(&self, coord: Coord) -> &Self::Output {
-                self.get(coord).unwrap()
-            }
-        }
-    };
-}
-
-macro_rules! index_mut_impl {
-    ($t:ty, $($args:tt)*) => {
-        impl<$($args,)*> std::ops::IndexMut<Coord> for $t {
-            fn index_mut(&mut self, coord: Coord) -> &mut Self::Output {
-                self.get_mut(coord).unwrap()
-            }
-        }
-    };
+pub trait RefGridMut<'a>: RefGrid<'a> {
+    fn get_mut(&mut self, coord: Coord) -> Option<&mut Self::RefItem>;
 }
 
 /// Wraps an LF-separated multiline ASCII string with equal line widths such that it can be
@@ -60,7 +54,10 @@ impl<'a> StrGrid<'a> {
 }
 
 impl Grid for StrGrid<'_> {
-    type Item = u8;
+    type Item<'a>
+        = &'a u8
+    where
+        Self: 'a;
 
     fn width(&self) -> usize {
         self.line_width - 1
@@ -78,7 +75,17 @@ impl Grid for StrGrid<'_> {
     }
 }
 
-index_impl! (StrGrid<'a>, 'a);
+impl<'a> RefGrid<'a> for StrGrid<'a> {
+    type RefItem = u8;
+}
+
+impl<'a> Index<Coord> for StrGrid<'a> {
+    type Output = <Self as RefGrid<'a>>::RefItem;
+
+    fn index(&self, index: Coord) -> &Self::Output {
+        self.get(index).unwrap()
+    }
+}
 
 pub struct VecGrid<T> {
     data: Vec<T>,
@@ -97,7 +104,10 @@ impl<T> VecGrid<T> {
 }
 
 impl<T> Grid for VecGrid<T> {
-    type Item = T;
+    type Item<'a>
+        = &'a T
+    where
+        Self: 'a;
 
     fn width(&self) -> usize {
         self.width
@@ -107,7 +117,7 @@ impl<T> Grid for VecGrid<T> {
         self.data.len() / self.width
     }
 
-    fn get(&self, coord: Coord) -> Option<&Self::Item> {
+    fn get(&self, coord: Coord) -> Option<Self::Item<'_>> {
         self.coord_to_data_index(coord).map(|index| unsafe {
             // SAFETY: `index` is guaranteed to be valid.
             self.data.get_unchecked(index)
@@ -115,8 +125,12 @@ impl<T> Grid for VecGrid<T> {
     }
 }
 
-impl<T> GridMut for VecGrid<T> {
-    fn get_mut(&mut self, coord: Coord) -> Option<&mut Self::Item> {
+impl<'a, T: 'a> RefGrid<'a> for VecGrid<T> {
+    type RefItem = T;
+}
+
+impl<'a, T: 'a> RefGridMut<'a> for VecGrid<T> {
+    fn get_mut(&mut self, coord: Coord) -> Option<&mut Self::RefItem> {
         self.coord_to_data_index(coord).map(|index| unsafe {
             // SAFETY: `index` is guaranteed to be valid.
             self.data.get_unchecked_mut(index)
@@ -124,5 +138,51 @@ impl<T> GridMut for VecGrid<T> {
     }
 }
 
-index_impl!(VecGrid<T>, T);
-index_mut_impl!(VecGrid<T>, T);
+impl<T> Index<Coord> for VecGrid<T> {
+    type Output = T;
+
+    fn index(&self, index: Coord) -> &Self::Output {
+        self.get(index).unwrap()
+    }
+}
+
+impl<T> IndexMut<Coord> for VecGrid<T> {
+    fn index_mut(&mut self, index: Coord) -> &mut Self::Output {
+        self.get_mut(index).unwrap()
+    }
+}
+
+pub struct MapGrid<'g, G, F> {
+    grid: &'g G,
+    f: F,
+}
+
+impl<'g, G, F> MapGrid<'g, G, F> {
+    pub fn new(grid: &'g G, f: F) -> Self {
+        Self { grid, f }
+    }
+}
+
+impl<'g, B, G, F> Grid for MapGrid<'g, G, F>
+where
+    G: Grid,
+    F: Fn(G::Item<'g>) -> B,
+{
+    type Item<'a>
+        = B
+    where
+        F: 'a,
+        'g: 'a;
+
+    fn width(&self) -> usize {
+        self.grid.width()
+    }
+
+    fn height(&self) -> usize {
+        self.grid.height()
+    }
+
+    fn get(&self, coord: Coord) -> Option<Self::Item<'_>> {
+        self.grid.get(coord).map(&self.f)
+    }
+}
