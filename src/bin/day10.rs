@@ -1,12 +1,11 @@
 use advent_of_code_2024::day_main;
-use advent_of_code_2024::util::grid::{Coord, Grid, RefGrid, StrGrid, VecGrid};
+use advent_of_code_2024::util::grid::{Coord, Direction, Grid, StrGrid, VecGrid};
 use std::collections::VecDeque;
 
 day_main!(10);
 
 fn solve(input: &str) -> (Option<usize>, Option<usize>) {
-    let grid = StrGrid::new(input.as_bytes());
-    let grid = grid.map(|&c| (c as char).to_digit(10).unwrap());
+    let grid = StrGrid::new(input.as_bytes()).map(|&c| (c as char).to_digit(10).unwrap());
 
     let mut count1 = 0;
 
@@ -20,19 +19,36 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     (Some(count1), None)
 }
 
-fn count_trails<'g, G>(grid: &G, trailhead_coord: Coord) -> usize
-where
-    G: Grid<Item<'g> = u32> + 'g,
-{
+fn count_trails<'a>(grid: &'a impl Grid<'a, Item = u32>, trailhead_coord: Coord) -> usize {
     let mut visited = VecGrid::from_data(grid.width(), vec![false; grid.width() * grid.height()]);
     let mut queue = VecDeque::new();
 
     queue.push_back((trailhead_coord, 0));
     visited[trailhead_coord] = true;
 
-    while let Some((coord, height)) = queue.pop_front() {}
+    let mut count = 0;
 
-    todo!()
+    while let Some((coord, height)) = queue.pop_front() {
+        if height == 9 {
+            count += 1;
+            continue;
+        }
+
+        for next_coord in Direction::DIRECTIONS
+            .iter()
+            .filter_map(|dir| dir.step(coord, 0, grid.width() - 1, 0, grid.height() - 1))
+        {
+            if visited[next_coord] {
+                continue;
+            }
+            if grid.get(next_coord).unwrap() == height + 1 {
+                queue.push_back((next_coord, height + 1));
+                visited[next_coord] = true;
+            }
+        }
+    }
+
+    count
 }
 
 #[cfg(test)]

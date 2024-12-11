@@ -3,6 +3,41 @@ use std::ops::{Index, IndexMut};
 
 pub type Coord = (usize, usize);
 
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum Direction {
+    North,
+    East,
+    South,
+    West,
+}
+
+impl Direction {
+    pub const DIRECTIONS: [Direction; 4] = [
+        Direction::North,
+        Direction::East,
+        Direction::South,
+        Direction::West,
+    ];
+
+    pub fn step(
+        self,
+        (x, y): Coord,
+        // TODO: Accept RangeBounds instead?
+        min_x: usize,
+        max_x: usize,
+        min_y: usize,
+        max_y: usize,
+    ) -> Option<Coord> {
+        match self {
+            Direction::North if y > min_y => Some((x, y - 1)),
+            Direction::East if x < max_x => Some((x + 1, y)),
+            Direction::South if y < max_y => Some((x, y + 1)),
+            Direction::West if x > min_x => Some((x - 1, y)),
+            _ => None,
+        }
+    }
+}
+
 pub trait Grid<'a> {
     type Item;
 
