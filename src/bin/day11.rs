@@ -23,33 +23,11 @@ fn solve(input: &str) -> (Option<u64>, Option<u64>) {
     (Some(count1), Some(count2))
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-struct CacheKey(u64);
-
-impl CacheKey {
-    const STONE_BITS: u64 = 56;
-    const TIMES_BITS: u64 = 8;
-
-    fn new(stone: u64, times: u64) -> Self {
-        assert!(stone < (1 << Self::STONE_BITS));
-        assert!(times < (1 << Self::TIMES_BITS));
-
-        Self((stone << Self::TIMES_BITS) | times)
-    }
-
-    fn times(&self) -> u64 {
-        self.0 & ((1 << Self::TIMES_BITS) - 1)
-    }
-    fn stone(&self) -> u64 {
-        self.0 >> Self::TIMES_BITS
-    }
-}
-
-fn blink(stone: u64, times: u64, cache: &mut HashMap<CacheKey, u64>) -> u64 {
+fn blink(stone: u64, times: u64, cache: &mut HashMap<u64, u64>) -> u64 {
     if times == 0 {
         1
     } else {
-        let cache_key = CacheKey::new(stone, times);
+        let cache_key = stone << 8 | times;
         if let Some(&result) = cache.get(&cache_key) {
             return result;
         }
