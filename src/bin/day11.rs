@@ -4,10 +4,10 @@ use std::collections::HashMap;
 
 day_main!(11);
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+fn solve(input: &str) -> (Option<u64>, Option<u64>) {
     let stones = input
         .split_whitespace()
-        .map(|s| s.parse::<usize>().unwrap())
+        .map(|s| s.parse::<u64>().unwrap())
         .collect_vec();
 
     let mut cache = HashMap::default();
@@ -23,35 +23,58 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     (Some(count1), Some(count2))
 }
 
-fn blink(stone: usize, times: usize, cache: &mut HashMap<(usize, usize), usize>) -> usize {
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+struct CacheKey(u64);
+
+impl CacheKey {
+    const STONE_BITS: u64 = 56;
+    const TIMES_BITS: u64 = 8;
+
+    fn new(stone: u64, times: u64) -> Self {
+        assert!(stone < (1 << Self::STONE_BITS));
+        assert!(times < (1 << Self::TIMES_BITS));
+
+        Self((stone << Self::TIMES_BITS) | times)
+    }
+
+    fn times(&self) -> u64 {
+        self.0 & ((1 << Self::TIMES_BITS) - 1)
+    }
+    fn stone(&self) -> u64 {
+        self.0 >> Self::TIMES_BITS
+    }
+}
+
+fn blink(stone: u64, times: u64, cache: &mut HashMap<CacheKey, u64>) -> u64 {
     if times == 0 {
         1
     } else {
-        if let Some(&result) = cache.get(&(stone, times)) {
+        let cache_key = CacheKey::new(stone, times);
+        if let Some(&result) = cache.get(&cache_key) {
             return result;
         }
 
         let result = match stone {
             0 => blink(1, times - 1, cache),
             n if (n.ilog10() + 1) % 2 == 0 => {
-                let f = 10usize.pow((n.ilog10() + 1) / 2);
+                let f = 10u64.pow((n.ilog10() + 1) / 2);
                 blink(n / f, times - 1, cache) + blink(n % f, times - 1, cache)
             }
             n => blink(n * 2024, times - 1, cache),
         };
-        cache.insert((stone, times), result);
+        cache.insert(cache_key, result);
         result
     }
 }
 
-fn blink_naive(stones: &Vec<usize>, next_stones: &mut Vec<usize>) {
+fn blink_naive(stones: &Vec<u64>, next_stones: &mut Vec<u64>) {
     next_stones.clear();
 
     for &stone in stones {
         match stone {
             0 => next_stones.push(1),
             n if (n.ilog10() + 1) % 2 == 0 => {
-                let f = 10usize.pow((n.ilog10() + 1) / 2);
+                let f = 10u64.pow((n.ilog10() + 1) / 2);
                 next_stones.push(n / f);
                 next_stones.push(n % f);
             }
