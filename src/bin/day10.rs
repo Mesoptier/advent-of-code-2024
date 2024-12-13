@@ -101,11 +101,20 @@ fn count_trails<'a>(grid: &'a impl Grid<'a, Item = u32>, trailhead_coord: Coord)
 #[cfg(test)]
 mod tests {
     use crate::solve;
+    use indoc::indoc;
 
     #[test]
     fn test_solve() {
-        let example_input =
-            "89010123\n78121874\n87430965\n96549874\n45678903\n32019012\n01329801\n10456732\n";
+        let example_input = indoc! {"
+            89010123
+            78121874
+            87430965
+            96549874
+            45678903
+            32019012
+            01329801
+            10456732
+        "};
         assert_eq!(solve(example_input), (Some(36), Some(81)));
     }
 }

@@ -96,10 +96,22 @@ fn fill_region<'g>(
 #[cfg(test)]
 mod tests {
     use crate::solve;
+    use indoc::indoc;
 
     #[test]
     fn test_solve() {
-        let example_input = "RRRRIICCFF\nRRRRIICCCF\nVVRRRCCFFF\nVVRCCCJFFF\nVVVVCJJCFE\nVVIVCCJJEE\nVVIIICJJEE\nMIIIIIJJEE\nMIIISIJEEE\nMMMISSJEEE\n";
+        let example_input = indoc! {"
+            RRRRIICCFF
+            RRRRIICCCF
+            VVRRRCCFFF
+            VVRCCCJFFF
+            VVVVCJJCFE
+            VVIVCCJJEE
+            VVIIICJJEE
+            MIIIIIJJEE
+            MIIISIJEEE
+            MMMISSJEEE
+        "};
         assert_eq!(solve(example_input), (Some(1930), Some(1206)));
     }
 }

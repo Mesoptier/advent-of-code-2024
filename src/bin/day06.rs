@@ -127,10 +127,22 @@ impl Direction {
 #[cfg(test)]
 mod tests {
     use crate::solve;
+    use indoc::indoc;
 
     #[test]
     fn test_solve() {
-        let example_input = "....#.....\n.........#\n..........\n..#.......\n.......#..\n..........\n.#..^.....\n........#.\n#.........\n......#...\n";
+        let example_input = indoc! {"
+            ....#.....
+            .........#
+            ..........
+            ..#.......
+            .......#..
+            ..........
+            .#..^.....
+            ........#.
+            #.........
+            ......#...
+        "};
         assert_eq!(solve(example_input), (Some(41) /* Heh, Sum 41! */, Some(6)));
     }
 }
