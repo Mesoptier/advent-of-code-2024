@@ -2,6 +2,10 @@ macro_rules! impl_days {
     ($($m:ident,)*) => {
         $(pub mod $m;)*
 
+        pub fn days() -> Vec<usize> {
+            vec![$($m::DAY,)*]
+        }
+
         pub fn solver(day: usize) -> Option<fn(&str) -> DaySolution> {
             match day {
                 $($m::DAY => Some(|input: &str|{

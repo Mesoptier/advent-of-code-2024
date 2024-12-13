@@ -5,6 +5,10 @@ edition = "2021"
 
 default-run = "advent-of-code-2024"
 
+[[bench]]
+name = "days"
+harness = false
+
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
 copy-range = "0.1.1"
@@ -15,3 +19,6 @@ indoc = "2.0.5"
 itertools = "0.13.0"
 nom = "7.1.3"
 reqwest = { version = "0.12.9", features = ["blocking"] }
+
+[dev-dependencies]
+criterion = "0.5.1"
