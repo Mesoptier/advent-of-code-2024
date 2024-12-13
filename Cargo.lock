@@ -23,6 +23,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "copy-range",
+ "divrem",
  "gcd",
  "homedir",
  "indoc",
@@ -230,6 +231,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "divrem"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69dde51e8fef5e12c1d65e0929b03d66e4c0c18282bc30ed2ca050ad6f44dd82"
 
 [[package]]
 name = "either"
