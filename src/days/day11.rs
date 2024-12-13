@@ -1,10 +1,9 @@
-use advent_of_code_2024::day_main;
 use itertools::Itertools;
 use std::collections::HashMap;
 
-day_main!(11);
+pub const DAY: usize = 11;
 
-fn solve(input: &str) -> (Option<u64>, Option<u64>) {
+pub fn solve(input: &str) -> (Option<u64>, Option<u64>) {
     let stones = input
         .split_whitespace()
         .map(|s| s.parse::<u64>().unwrap())
@@ -63,7 +62,7 @@ fn blink_naive(stones: &Vec<u64>, next_stones: &mut Vec<u64>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{blink_naive, solve};
+    use super::{blink_naive, solve};
 
     #[test]
     fn test_solve() {

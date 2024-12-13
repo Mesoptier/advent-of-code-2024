@@ -1,11 +1,10 @@
-use advent_of_code_2024::day_main;
 use itertools::Itertools;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-day_main!(5);
+pub const DAY: usize = 5;
 
-fn solve(input: &str) -> (Option<u32>, Option<u32>) {
+pub fn solve(input: &str) -> (Option<u32>, Option<u32>) {
     let mut lines = input.lines();
 
     // Parse rules
@@ -59,7 +58,7 @@ fn solve(input: &str) -> (Option<u32>, Option<u32>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

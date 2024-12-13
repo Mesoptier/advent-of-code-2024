@@ -1,7 +1,6 @@
-use advent_of_code_2024::day_main;
 use itertools::Itertools;
 
-day_main!(9);
+pub const DAY: usize = 9;
 
 struct Blocks {
     checksum: usize,
@@ -25,7 +24,7 @@ impl Blocks {
     }
 }
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let input = input
         .lines()
         .next()
@@ -133,7 +132,7 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
 
     #[test]
     fn test_solve() {

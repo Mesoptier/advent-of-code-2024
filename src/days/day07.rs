@@ -1,4 +1,3 @@
-use advent_of_code_2024::day_main;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::combinator::map;
@@ -6,9 +5,9 @@ use nom::multi::separated_list0;
 use nom::sequence::separated_pair;
 use nom::IResult;
 
-day_main!(7);
+pub const DAY: usize = 7;
 
-fn solve(input: &str) -> (Option<isize>, Option<isize>) {
+pub fn solve(input: &str) -> (Option<isize>, Option<isize>) {
     let mut count1 = 0;
     let mut count2 = 0;
 
@@ -68,7 +67,7 @@ fn parse_line(line: &str) -> IResult<&str, (isize, Vec<isize>)> {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

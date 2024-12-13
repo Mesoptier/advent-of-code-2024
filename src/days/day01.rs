@@ -1,10 +1,9 @@
-use advent_of_code_2024::day_main;
 use itertools::Itertools;
 use std::cmp::Ordering;
 
-day_main!(1);
+pub const DAY: usize = 1;
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let (mut left_list, mut right_list) = parse(input);
 
     left_list.sort();
@@ -59,7 +58,7 @@ fn parse(input: &str) -> (Vec<usize>, Vec<usize>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

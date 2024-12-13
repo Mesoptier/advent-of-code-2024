@@ -1,10 +1,9 @@
-use advent_of_code_2024::day_main;
 use nom::InputIter;
 use std::collections::HashSet;
 
-day_main!(6);
+pub const DAY: usize = 6;
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let input = input.as_bytes();
     let width = input.position(|b| b == b'\n').unwrap();
     let line_width = width + 1;
@@ -126,7 +125,7 @@ impl Direction {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

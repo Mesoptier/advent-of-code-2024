@@ -1,4 +1,3 @@
-use advent_of_code_2024::day_main;
 use divrem::DivRem;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
@@ -7,9 +6,9 @@ use nom::combinator::{map_res, opt};
 use nom::sequence::{delimited, preceded, separated_pair};
 use nom::IResult;
 
-day_main!(13);
+pub const DAY: usize = 13;
 
-fn solve(input: &str) -> (Option<isize>, Option<isize>) {
+pub fn solve(input: &str) -> (Option<isize>, Option<isize>) {
     let mut input = input;
 
     let mut count1 = 0;
@@ -112,7 +111,7 @@ fn solve_claw_machine(claw_machine: ClawMachine) -> Option<isize> {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

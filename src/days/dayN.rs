@@ -1,14 +1,12 @@
-use advent_of_code_2024::day_main;
+pub const DAY: usize = 0;
 
-day_main!(0);
-
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     (None, None)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
 
     #[test]
     fn test_solve() {

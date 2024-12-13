@@ -1,10 +1,9 @@
-use advent_of_code_2024::day_main;
-use advent_of_code_2024::util::grid::{Coord, Direction, Grid, StrGrid, VecGrid};
+use crate::util::grid::{Coord, Direction, Grid, StrGrid, VecGrid};
 use std::collections::VecDeque;
 
-day_main!(10);
+pub const DAY: usize = 10;
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let heights = StrGrid::new(input.as_bytes()).map(|&c| (c as char).to_digit(10).unwrap());
 
     // Part 1
@@ -100,7 +99,7 @@ fn count_trails<'a>(grid: &'a impl Grid<'a, Item = u32>, trailhead_coord: Coord)
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

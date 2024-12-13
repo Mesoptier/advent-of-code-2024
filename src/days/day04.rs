@@ -1,8 +1,6 @@
-use advent_of_code_2024::day_main;
+pub const DAY: usize = 4;
 
-day_main!(4);
-
-fn solve(input: &str) -> (Option<u32>, Option<u32>) {
+pub fn solve(input: &str) -> (Option<u32>, Option<u32>) {
     let input = input.as_bytes();
     let width = input.iter().position(|&c| c == b'\n').unwrap();
     let line_width = width + 1;
@@ -75,7 +73,7 @@ fn solve(input: &str) -> (Option<u32>, Option<u32>) {
 }
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

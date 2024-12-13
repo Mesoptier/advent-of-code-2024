@@ -1,4 +1,3 @@
-use advent_of_code_2024::day_main;
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take};
 use nom::character::complete::digit1;
@@ -7,9 +6,9 @@ use nom::multi::{fold_many0, many_till};
 use nom::sequence::{delimited, separated_pair};
 use nom::IResult;
 
-day_main!(3);
+pub const DAY: usize = 3;
 
-fn solve(input: &str) -> (Option<u32>, Option<u32>) {
+pub fn solve(input: &str) -> (Option<u32>, Option<u32>) {
     struct State {
         sum1: u32,
         sum2: u32,
@@ -72,7 +71,7 @@ fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
 
     #[test]
     fn test_solve() {

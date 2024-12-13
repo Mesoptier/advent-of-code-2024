@@ -1,11 +1,10 @@
-use advent_of_code_2024::day_main;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::ops::RangeBounds;
 
-day_main!(8);
+pub const DAY: usize = 8;
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let (antennas_map, x_range, y_range) = {
         let mut antennas_map = HashMap::<char, Vec<(isize, isize)>>::new();
         let mut width = 0;
@@ -69,7 +68,7 @@ fn solve(input: &str) -> (Option<usize>, Option<usize>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

@@ -1,10 +1,9 @@
-use advent_of_code_2024::day_main;
-use advent_of_code_2024::util::grid::{Coord, Grid, StrGrid, VecGrid};
+use crate::util::grid::{Coord, Grid, StrGrid, VecGrid};
 use std::collections::VecDeque;
 
-day_main!(12);
+pub const DAY: usize = 12;
 
-fn solve(input: &str) -> (Option<u32>, Option<u32>) {
+pub fn solve(input: &str) -> (Option<u32>, Option<u32>) {
     let grid = StrGrid::new(input.as_bytes());
 
     let mut visited = VecGrid::from_data(grid.width(), vec![false; grid.width() * grid.height()]);
@@ -95,7 +94,7 @@ fn fill_region<'g>(
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

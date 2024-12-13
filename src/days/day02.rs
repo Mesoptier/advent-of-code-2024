@@ -1,9 +1,8 @@
-use advent_of_code_2024::day_main;
 use std::cmp::Ordering;
 
-day_main!(2);
+pub const DAY: usize = 2;
 
-fn solve(input: &str) -> (Option<usize>, Option<usize>) {
+pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let mut count1 = 0;
     let mut count2 = 0;
 
@@ -96,7 +95,7 @@ fn is_safe_step(level: u32, next_level: u32, target_ordering: Ordering) -> bool 
 
 #[cfg(test)]
 mod tests {
-    use crate::solve;
+    use super::solve;
     use indoc::indoc;
 
     #[test]

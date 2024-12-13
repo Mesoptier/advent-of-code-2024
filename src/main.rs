@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use homedir::my_home;
 use std::fs;
 
-const YEAR: u32 = 2024;
+const YEAR: usize = 2024;
 
 #[derive(Parser)]
 struct Cli {
@@ -12,7 +12,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Download { day: u32 },
+    Download { day: usize },
+    Solve { day: usize },
 }
 
 fn main() {
@@ -43,6 +44,10 @@ fn main() {
             } else {
                 println!("couldn't fetch adventofcode input");
             }
+        }
+
+        Commands::Solve { day } => {
+            advent_of_code_2024::days::solve(day);
         }
     }
 }
