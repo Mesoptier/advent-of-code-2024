@@ -1,11 +1,9 @@
-use crate::days::day01::Day01;
 use crate::days::day02::Day02;
 use crate::days::day03::Day03;
 use crate::days::day04::Day04;
 use crate::days::day05::Day05;
 use std::fmt::Debug;
 
-mod day01;
 mod day02;
 mod day03;
 mod day04;
@@ -28,7 +26,6 @@ trait DaySolution {
 
 pub fn run_day(input: &str, day: u32) -> (Option<String>, Option<String>) {
     match day {
-        1 => Day01.run(input),
         2 => Day02.run(input),
         3 => Day03.run(input),
         4 => Day04.run(input),
