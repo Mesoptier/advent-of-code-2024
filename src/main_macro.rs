@@ -2,13 +2,10 @@
 macro_rules! day_main {
     ($day:literal) => {
         fn main() {
-            use std::fs;
-            use std::time::Instant;
-
             let input_path = format!("inputs/day{:02}.txt", $day);
-            let input = fs::read_to_string(input_path).unwrap();
+            let input = std::fs::read_to_string(input_path).unwrap();
 
-            let start = Instant::now();
+            let start = std::time::Instant::now();
             let (part_1, part_2) = solve(&input);
             let elapsed = start.elapsed();
 
