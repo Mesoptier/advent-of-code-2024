@@ -1,48 +1,20 @@
-macro_rules! impl_solve {
+macro_rules! impl_days {
     ($($m:ident,)*) => {
-        pub fn solve(day: usize) {
+        $(pub mod $m;)*
+
+        pub fn solve(day: usize, input: &str) -> Option<DaySolution> {
             match day {
                 $(day if day == $m::DAY => {
-                    let input_path = format!("inputs/day{:02}.txt", day);
-                    let input = std::fs::read_to_string(input_path).unwrap();
-
-                    let start = std::time::Instant::now();
                     let (part_1, part_2) = $m::solve(&input);
-                    let elapsed = start.elapsed();
-
-                    println!("Day {}", day);
-                    match part_1 {
-                        Some(part_1) => println!("Part 1: {:?}", part_1),
-                        None => println!("Part 1: not yet implemented"),
-                    }
-                    match part_2 {
-                        Some(part_2) => println!("Part 2: {:?}", part_2),
-                        None => println!("Part 2: not yet implemented"),
-                    }
-
-                    println!("Elapsed: {:?}", elapsed);
+                    Some((part_1.map(|p| p.into()), part_2.map(|p| p.into())))
                 })*,
-                _ => unimplemented!(),
+                _ => None,
             }
         }
     };
 }
 
-pub mod day01;
-pub mod day02;
-pub mod day03;
-pub mod day04;
-pub mod day05;
-pub mod day06;
-pub mod day07;
-pub mod day08;
-pub mod day09;
-pub mod day10;
-pub mod day11;
-pub mod day12;
-pub mod day13;
-
-impl_solve! {
+impl_days! {
     day01,
     day02,
     day03,
@@ -56,4 +28,46 @@ impl_solve! {
     day11,
     day12,
     day13,
+}
+
+type DaySolution = (Option<PartSolution>, Option<PartSolution>);
+
+macro_rules! part_solution {
+    ($($i:ident => $t:ty,)*) => {
+        pub enum PartSolution {
+            $($i($t),)*
+        }
+
+        impl std::fmt::Display for PartSolution {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+                match self {
+                    $(PartSolution::$i(x) => x.fmt(f),)*
+                }
+            }
+        }
+
+        $(
+            impl From<$t> for PartSolution {
+                fn from(x: $t) -> Self {
+                    PartSolution::$i(x)
+                }
+            }
+        )*
+    };
+}
+
+part_solution! {
+    I8 => i8,
+    I16 => i16,
+    I32 => i32,
+    I64 => i64,
+    I128 => i128,
+    Isize => isize,
+    U8 => u8,
+    U16 => u16,
+    U32 => u32,
+    U64 => u64,
+    U128 => u128,
+    Usize => usize,
+    String => String,
 }
