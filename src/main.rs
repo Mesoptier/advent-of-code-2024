@@ -51,10 +51,11 @@ fn main() {
             let input_path = format!("inputs/day{:02}.txt", day);
             let input = fs::read_to_string(&input_path)
                 .unwrap_or_else(|_| panic!("Input file not found: {}", input_path));
+            let solve = advent_of_code_2024::days::solver(day)
+                .unwrap_or_else(|| panic!("Day {}: not yet implemented", day));
 
             let start = Instant::now();
-            let (part_1, part_2) = advent_of_code_2024::days::solve(day, &input)
-                .unwrap_or_else(|| panic!("Day {}: not yet implemented", day));
+            let (part_1, part_2) = solve(&input);
             let elapsed = start.elapsed();
 
             println!("Day {}", day);

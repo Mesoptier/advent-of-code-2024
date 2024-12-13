@@ -2,12 +2,12 @@ macro_rules! impl_days {
     ($($m:ident,)*) => {
         $(pub mod $m;)*
 
-        pub fn solve(day: usize, input: &str) -> Option<DaySolution> {
+        pub fn solver(day: usize) -> Option<fn(&str) -> DaySolution> {
             match day {
-                $(day if day == $m::DAY => {
+                $($m::DAY => Some(|input: &str|{
                     let (part_1, part_2) = $m::solve(&input);
-                    Some((part_1.map(|p| p.into()), part_2.map(|p| p.into())))
-                })*,
+                    (part_1.map(|p| p.into()), part_2.map(|p| p.into()))
+                }),)*
                 _ => None,
             }
         }
