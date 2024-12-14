@@ -1,5 +1,7 @@
 macro_rules! impl_days {
     ($($m:ident,)*) => {
+        $(pub mod $m;)*
+
         pub fn days() -> Vec<usize> {
             vec![$($m::DAY,)*]
         }
@@ -16,7 +18,21 @@ macro_rules! impl_days {
     };
 }
 
-include!(concat!(env!("OUT_DIR"), "/days.in"));
+impl_days! {
+    day01,
+    day02,
+    day03,
+    day04,
+    day05,
+    day06,
+    day07,
+    day08,
+    day09,
+    day10,
+    day11,
+    day12,
+    day13,
+}
 
 type DaySolution = (Option<PartSolution>, Option<PartSolution>);
 
