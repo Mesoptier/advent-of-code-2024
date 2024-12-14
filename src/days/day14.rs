@@ -1,4 +1,4 @@
-use bmp::{px, Image, Pixel};
+use crate::util::grid::VecGrid;
 use itertools::Itertools;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -10,11 +10,15 @@ use std::cmp::Ordering;
 pub const DAY: usize = 14;
 
 pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
-    solve_with_dimensions(input, [101, 103])
+    solve_with_dimensions(input, [101, 103], [31, 33])
 }
 
-fn solve_with_dimensions(input: &str, dimensions: Vec2) -> (Option<usize>, Option<usize>) {
-    let particles = input
+fn solve_with_dimensions(
+    input: &str,
+    dimensions: Vec2,
+    tree_dimensions: Vec2,
+) -> (Option<usize>, Option<usize>) {
+    let mut particles = input
         .lines()
         .map(|line| parse_particle(line).unwrap().1)
         .collect_vec();
@@ -45,22 +49,62 @@ fn solve_with_dimensions(input: &str, dimensions: Vec2) -> (Option<usize>, Optio
     }
 
     // Part 2
-    for time in 0..10000 {
-        let mut img = Image::new(dimensions[0] as u32, dimensions[1] as u32);
+    let mut part_2 = None;
 
-        for Particle { mut pos, vel } in particles.iter().copied() {
+    for time in 1..10000 {
+        let mut grid = VecGrid::from_data(
+            dimensions[0] as usize,
+            vec![false; (dimensions[0] * dimensions[1]) as usize],
+        );
+
+        for particle in &mut particles {
             for d in 0..2 {
-                pos[d] = (pos[d] + vel[d] * time).rem_euclid(dimensions[d]);
+                particle.pos[d] = (particle.pos[d] + particle.vel[d]).rem_euclid(dimensions[d]);
             }
 
-            img.set_pixel(pos[0] as u32, pos[1] as u32, px!(255, 255, 255));
+            grid[(particle.pos[0] as usize, particle.pos[1] as usize)] = true;
         }
 
-        let img_path = format!("data/day14/{}.bmp", time);
-        img.save(img_path).unwrap();
+        let mut has_tree_rect = false;
+        'outer: for particle in &particles {
+            let top_left = particle.pos;
+
+            // Check that tree rect would be in bounds
+            for d in 0..2 {
+                if top_left[d] + tree_dimensions[d] >= dimensions[d] {
+                    continue 'outer;
+                }
+            }
+
+            for d in 0..2 {
+                let other_d = (d + 1) % 2;
+
+                for i in 0..tree_dimensions[d] {
+                    // Point along top/left edges
+                    let mut p = top_left;
+                    p[d] = top_left[d] + i;
+                    if !grid[(p[0] as usize, p[1] as usize)] {
+                        continue 'outer;
+                    }
+
+                    // Point along bottom/right edges
+                    p[other_d] = top_left[other_d] + tree_dimensions[other_d] - 1;
+                    if !grid[(p[0] as usize, p[1] as usize)] {
+                        continue 'outer;
+                    }
+                }
+            }
+
+            has_tree_rect = true;
+            break;
+        }
+
+        if has_tree_rect {
+            part_2 = Some(time as usize);
+        }
     }
 
-    (Some(counts1.iter().product()), None)
+    (Some(counts1.iter().product()), part_2)
 }
 
 type Vec2 = [isize; 2];
@@ -111,7 +155,7 @@ mod tests {
             p=9,5 v=-3,-3
         "};
         assert_eq!(
-            solve_with_dimensions(example_input, [11, 7]),
+            solve_with_dimensions(example_input, [11, 7], [4, 4]),
             (Some(12), None)
         );
     }
