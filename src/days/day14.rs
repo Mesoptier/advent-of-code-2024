@@ -1,3 +1,4 @@
+use bmp::{px, Image, Pixel};
 use itertools::Itertools;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -31,6 +32,7 @@ fn solve_with_dimensions(input: &str, dimensions: Vec2) -> (Option<usize>, Optio
         }
     };
 
+    // Part 1
     let mut counts1 = [0; 4];
     for mut particle in particles.iter().copied() {
         for d in 0..2 {
@@ -40,6 +42,22 @@ fn solve_with_dimensions(input: &str, dimensions: Vec2) -> (Option<usize>, Optio
         if let Some(quadrant) = get_quadrant(particle) {
             counts1[quadrant] += 1;
         }
+    }
+
+    // Part 2
+    for time in 0..10000 {
+        let mut img = Image::new(dimensions[0] as u32, dimensions[1] as u32);
+
+        for Particle { mut pos, vel } in particles.iter().copied() {
+            for d in 0..2 {
+                pos[d] = (pos[d] + vel[d] * time).rem_euclid(dimensions[d]);
+            }
+
+            img.set_pixel(pos[0] as u32, pos[1] as u32, px!(255, 255, 255));
+        }
+
+        let img_path = format!("data/day14/{}.bmp", time);
+        img.save(img_path).unwrap();
     }
 
     (Some(counts1.iter().product()), None)
