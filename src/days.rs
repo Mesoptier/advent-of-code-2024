@@ -33,6 +33,7 @@ impl_days! {
     day12,
     day13,
     day14,
+    day15,
 }
 
 type DaySolution = (Option<PartSolution>, Option<PartSolution>);
