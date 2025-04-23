@@ -2,14 +2,6 @@ use crate::util::grid::{Coord, Direction, Grid, VecGrid};
 
 pub const DAY: usize = 15;
 
-#[derive(Copy, Clone)]
-enum Tile {
-    Empty,
-    Robot,
-    Wall,
-    Box,
-}
-
 pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let (grid_input, moves_input) = {
         let mut split = input.splitn(2, "\n\n");
@@ -20,13 +12,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
         let width = grid_input.chars().position(|c| c == '\n').unwrap();
         let data = grid_input
             .chars()
-            .filter_map(|c| match c {
-                '.' => Some(Tile::Empty),
-                '@' => Some(Tile::Robot),
-                'O' => Some(Tile::Box),
-                '#' => Some(Tile::Wall),
-                _ => None,
-            })
+            .filter(|c| matches!(c, '.' | '@' | 'O' | '#'))
             .collect();
         VecGrid::from_data(width, data)
     };
@@ -34,7 +20,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let mut robot_coord = grid
         .iter()
         .find_map(|(coord, tile)| {
-            if matches!(tile, Tile::Robot) {
+            if matches!(tile, '@') {
                 Some(coord)
             } else {
                 None
@@ -51,22 +37,21 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     });
 
     for dir in moves {
-        fn try_move(grid: &mut VecGrid<Tile>, coord: Coord, dir: Direction) -> Option<Coord> {
+        fn try_move(grid: &mut VecGrid<char>, coord: Coord, dir: Direction) -> Option<Coord> {
             let target_coord = dir
                 .step(coord, 0, grid.width() - 1, 0, grid.height() - 1)
                 .unwrap();
 
             let can_move = match grid[target_coord] {
-                Tile::Empty => true,
-                Tile::Robot => unreachable!(),
-                Tile::Wall => false,
-                Tile::Box => try_move(grid, target_coord, dir).is_some(),
+                '.' => true,
+                '@' => unreachable!(),
+                '#' => false,
+                'O' => try_move(grid, target_coord, dir).is_some(),
+                _ => unreachable!(),
             };
 
             if can_move {
-                grid[target_coord] = grid[coord];
-                grid[coord] = Tile::Empty;
-
+                (grid[target_coord], grid[coord]) = (grid[coord], grid[target_coord]);
                 Some(target_coord)
             } else {
                 None
@@ -81,7 +66,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     let result1 = grid
         .iter()
         .filter_map(|(coord, tile)| match tile {
-            Tile::Box => Some(100 * coord.1 + coord.0),
+            'O' => Some(100 * coord.1 + coord.0),
             _ => None,
         })
         .sum();
@@ -108,6 +93,6 @@ mod tests {
 
             <^^>>>vv<v>>v<<
         "};
-        assert_eq!(solve(example_input), (Some(2028), None));
+        assert_eq!(solve(example_input), (Some(2028), Some(9021)));
     }
 }
