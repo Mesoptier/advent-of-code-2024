@@ -37,6 +37,15 @@ impl Direction {
         }
     }
 
+    pub fn unchecked_step(self, (x, y): Coord) -> Coord {
+        match self {
+            Direction::North => (x, y - 1),
+            Direction::East => (x + 1, y),
+            Direction::South => (x, y + 1),
+            Direction::West => (x - 1, y),
+        }
+    }
+
     pub fn clockwise(self) -> Self {
         match self {
             Direction::North => Direction::East,

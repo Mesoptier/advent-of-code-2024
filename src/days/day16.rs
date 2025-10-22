@@ -84,9 +84,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
                 }
             }
 
-            let next_coord = dir
-                .step(coord, 0, grid.width() - 1, 0, grid.height() - 1)
-                .unwrap();
+            let next_coord = dir.unchecked_step(coord);
             if grid[next_coord] != b'#' {
                 push_state(
                     &mut queue,
@@ -156,10 +154,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
             if score >= 1 {
                 queue.push_back(
                     State {
-                        coord: dir
-                            .opposite()
-                            .step(coord, 0, grid.width() - 1, 0, grid.height() - 1)
-                            .unwrap(),
+                        coord: dir.opposite().unchecked_step(coord),
                         dir,
                     }
                     .with_score(score - 1),
