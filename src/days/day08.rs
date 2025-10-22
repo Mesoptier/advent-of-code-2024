@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
-use std::ops::RangeBounds;
 
 pub const DAY: usize = 8;
 
