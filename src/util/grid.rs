@@ -53,6 +53,15 @@ impl Direction {
             Direction::West => Direction::South,
         }
     }
+
+    pub fn opposite(self) -> Self {
+        match self {
+            Direction::North => Direction::South,
+            Direction::East => Direction::West,
+            Direction::South => Direction::North,
+            Direction::West => Direction::East,
+        }
+    }
 }
 
 pub trait Grid<'a> {
