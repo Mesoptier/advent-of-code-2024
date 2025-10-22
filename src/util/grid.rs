@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 
 pub type Coord = (usize, usize);
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Direction {
     North,
     East,
@@ -34,6 +34,23 @@ impl Direction {
             Direction::South if y < max_y => Some((x, y + 1)),
             Direction::West if x > min_x => Some((x - 1, y)),
             _ => None,
+        }
+    }
+
+    pub fn clockwise(self) -> Self {
+        match self {
+            Direction::North => Direction::East,
+            Direction::East => Direction::South,
+            Direction::South => Direction::West,
+            Direction::West => Direction::North,
+        }
+    }
+    pub fn counter_clockwise(self) -> Self {
+        match self {
+            Direction::North => Direction::West,
+            Direction::East => Direction::North,
+            Direction::South => Direction::East,
+            Direction::West => Direction::South,
         }
     }
 }
