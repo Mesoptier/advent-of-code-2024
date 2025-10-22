@@ -16,10 +16,42 @@ impl State {
     }
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Copy, Clone)]
 struct StateWithScore {
     state: State,
     score: usize,
+}
+
+impl StateWithScore {
+    fn next_states(self) -> [Self; 3] {
+        [
+            (self.state.dir, 1),
+            (self.state.dir.clockwise(), 1001),
+            (self.state.dir.counter_clockwise(), 1001),
+        ]
+        .map(|(dir, score)| Self {
+            state: State {
+                coord: dir.unchecked_step(self.state.coord),
+                dir,
+            },
+            score: self.score + score,
+        })
+    }
+
+    fn prev_states(self) -> [Self; 3] {
+        [
+            (self.state.dir, 1),
+            (self.state.dir.clockwise(), 1001),
+            (self.state.dir.counter_clockwise(), 1001),
+        ]
+        .map(|(dir, score)| Self {
+            state: State {
+                coord: self.state.dir.opposite().unchecked_step(self.state.coord),
+                dir,
+            },
+            score: self.score.wrapping_sub(score),
+        })
+    }
 }
 
 impl PartialOrd<Self> for StateWithScore {
@@ -50,76 +82,39 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     {
         let mut queue = BinaryHeap::new();
 
-        fn push_state(
-            queue: &mut BinaryHeap<StateWithScore>,
-            lowest_score_map: &mut HashMap<State, usize>,
-            state: State,
-            score: usize,
-        ) {
-            if lowest_score_map.contains_key(&state) {
-                return;
-            }
-            queue.push(state.with_score(score));
-            lowest_score_map.insert(state, score);
-        }
-
-        push_state(
-            &mut queue,
-            &mut lowest_score_map,
-            State {
+        let start_state = StateWithScore {
+            state: State {
                 coord: start_coord,
                 dir: Direction::East,
             },
-            0,
-        );
+            score: 0,
+        };
 
-        while let Some(StateWithScore {
-            state: State { coord, dir },
-            score,
-        }) = queue.pop()
-        {
+        queue.push(start_state);
+        lowest_score_map.insert(start_state.state, start_state.score);
+
+        while let Some(state) = queue.pop() {
             if let Some(lowest_score) = lowest_score {
-                if score > lowest_score {
+                if state.score > lowest_score {
                     break;
                 }
             }
 
-            let next_coord = dir.unchecked_step(coord);
-            if grid[next_coord] != b'#' {
-                push_state(
-                    &mut queue,
-                    &mut lowest_score_map,
-                    State {
-                        coord: next_coord,
-                        dir,
-                    },
-                    score + 1,
-                );
+            for next_state in state.next_states() {
+                if grid[next_state.state.coord] == b'#' {
+                    // Don't crash into walls.
+                    continue;
+                }
+                if lowest_score_map.contains_key(&next_state.state) {
+                    // Already found a lower-score path to this state.
+                    continue;
+                }
+                if next_state.state.coord == end_coord {
+                    lowest_score = Some(next_state.score);
+                }
+                queue.push(next_state);
+                lowest_score_map.insert(next_state.state, next_state.score);
             }
-
-            if next_coord == end_coord {
-                lowest_score = Some(score + 1);
-                continue;
-            }
-
-            push_state(
-                &mut queue,
-                &mut lowest_score_map,
-                State {
-                    coord,
-                    dir: dir.clockwise(),
-                },
-                score + 1000,
-            );
-            push_state(
-                &mut queue,
-                &mut lowest_score_map,
-                State {
-                    coord,
-                    dir: dir.counter_clockwise(),
-                },
-                score + 1000,
-            );
         }
     }
 
@@ -143,41 +138,13 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
             .with_score(lowest_score.unwrap()),
         );
 
-        while let Some(StateWithScore { state, score }) = queue.pop_front() {
-            if lowest_score_map.get(&state) != Some(&score) {
+        while let Some(state) = queue.pop_front() {
+            if lowest_score_map.get(&state.state) != Some(&state.score) {
                 continue;
             }
 
-            let State { coord, dir } = state;
-            best_path_coords.insert(coord);
-
-            if score >= 1 {
-                queue.push_back(
-                    State {
-                        coord: dir.opposite().unchecked_step(coord),
-                        dir,
-                    }
-                    .with_score(score - 1),
-                );
-            }
-
-            if score >= 1000 {
-                queue.push_back(
-                    State {
-                        coord,
-                        dir: dir.clockwise(),
-                    }
-                    .with_score(score - 1000),
-                );
-
-                queue.push_back(
-                    State {
-                        coord,
-                        dir: dir.counter_clockwise(),
-                    }
-                    .with_score(score - 1000),
-                );
-            }
+            queue.extend(state.prev_states());
+            best_path_coords.insert(state.state.coord);
         }
 
         Some(best_path_coords.len())
