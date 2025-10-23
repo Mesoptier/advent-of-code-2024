@@ -1,6 +1,6 @@
 use nom::InputIter;
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
+use std::collections::{BinaryHeap, VecDeque};
 use std::ops::Index;
 
 pub const DAY: usize = 16;
@@ -45,10 +45,10 @@ impl Index<Coord> for Grid<'_> {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Eq, PartialEq, Copy, Clone)]
 struct Coord(usize);
 
-#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Eq, PartialEq, Copy, Clone)]
 struct Direction(usize);
 
 impl Direction {
@@ -115,7 +115,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
     debug_assert_eq!(grid[start_coord], b'S');
     debug_assert_eq!(grid[end_coord], b'E');
 
-    let mut lowest_score_map = HashMap::new();
+    let mut lowest_score_map = vec![usize::MAX; grid.data.len() * 4];
     let mut lowest_score = None;
 
     // Part 1: Find the path with the lowest score. Once it is found, keep searching until all paths
@@ -126,7 +126,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
         let start_state = State::new(start_coord, Direction::EAST).with_score(0);
 
         queue.push(start_state);
-        lowest_score_map.insert(start_state.state, start_state.score);
+        lowest_score_map[start_state.state.0] = start_state.score;
 
         while let Some(StateWithScore { state, score }) = queue.pop() {
             if let Some(lowest_score) = lowest_score {
@@ -149,7 +149,7 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
                     // Don't crash into walls.
                     continue;
                 }
-                if lowest_score_map.contains_key(&next_state.state) {
+                if lowest_score_map[next_state.state.0] != usize::MAX {
                     // Already found a lower-score path to this state.
                     continue;
                 }
@@ -157,21 +157,24 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
                     lowest_score = Some(next_state.score);
                 }
                 queue.push(next_state);
-                lowest_score_map.insert(next_state.state, next_state.score);
+                lowest_score_map[next_state.state.0] = next_state.score;
             }
         }
     }
 
     // Part 2: backtrack from end coord (facing North or East), counting cells where backtrack_score + cache_score == lowest_score.
     let result_part2 = {
-        let mut best_path_coords = HashSet::new();
+        let mut best_path_coords = vec![false; grid.data.len()];
+        let mut num_best_path_coords = 0;
         let mut queue = VecDeque::new();
 
         queue.push_back(State::new(end_coord, Direction::NORTH).with_score(lowest_score.unwrap()));
         queue.push_back(State::new(end_coord, Direction::EAST).with_score(lowest_score.unwrap()));
 
         while let Some(state) = queue.pop_front() {
-            if lowest_score_map.get(&state.state) != Some(&state.score) {
+            if lowest_score_map[state.state.0] == usize::MAX
+                || lowest_score_map[state.state.0] != state.score
+            {
                 continue;
             }
 
@@ -189,10 +192,14 @@ pub fn solve(input: &str) -> (Option<usize>, Option<usize>) {
             });
 
             queue.extend(prev_states);
-            best_path_coords.insert(state.state.coord());
+
+            if !best_path_coords[state.state.coord().0] {
+                best_path_coords[state.state.coord().0] = true;
+                num_best_path_coords += 1;
+            }
         }
 
-        Some(best_path_coords.len())
+        Some(num_best_path_coords)
     };
 
     (lowest_score, result_part2)
